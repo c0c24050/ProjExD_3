@@ -166,6 +166,32 @@ class Score:#ex01
         screen.blit(self.img, self.rct)
 
 
+class Explosion:#ex03
+    """
+    爆発エフェクトを表すクラス
+    """
+    def __init__(self, center: tuple[int, int]):
+        """
+        爆発エフェクト用のSurfaceリストを作成し，位置と寿命を設定
+        引数 center：爆発の中心座標
+        """
+        img0 = pg.image.load("fig/explosion.gif")
+        img1 = pg.transform.flip(img0, True, False)
+        self.imgs = [img0, img1]
+        self.rct = self.imgs[0].get_rect()
+        self.rct.center = center
+        self.life = 20  # 爆発が続くフレーム数
+        self.frame = 0  # フレームカウンタ
+
+    def update(self, screen: pg.Surface):
+        """
+        爆発エフェクトの更新と描画
+        引数 screen：画面Surface
+        """
+        self.life -= 1
+        screen.blit(self.imgs[self.frame % 2], self.rct)
+        self.frame += 1
+
 
 def main():
     pg.display.set_caption("たたかえ！こうかとん")
@@ -174,6 +200,7 @@ def main():
     bird = Bird((300, 200))
     bombs = [Bomb((255, 0, 0), 10) for _ in range(NUM_OF_BOMBS)]
     beams = []
+    explosions = []
     score = Score()
     clock = pg.time.Clock()
     tmr = 0
@@ -207,7 +234,8 @@ def main():
                     pg.display.update()
                     time.sleep(0.2)
                     bombs[i] = None
-                    beams[bi] = None  # ビームも消す
+                    beams[bi] = None
+                    explosions.append(Explosion(bomb.rct.center))  # 爆発インスタンス追加
                     score.score += 1
                     break
 
@@ -221,6 +249,9 @@ def main():
         for bomb in bombs:
             bomb.update(screen)
         score.update(screen)
+        explosions = [ex for ex in explosions if ex.life > 0]
+        for ex in explosions:
+            ex.update(screen)
         pg.display.update()
         tmr += 1
         clock.tick(50)
