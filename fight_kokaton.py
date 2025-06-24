@@ -181,12 +181,13 @@ class Explosion:#ex03
     """
     爆発エフェクトを表すクラス
     """
-    def __init__(self, center: tuple[int, int]):
+    def __init__(self, center: tuple[int, int],scale=0.5):
         """
         爆発エフェクト用のSurfaceリストを作成し，位置と寿命を設定
         引数 center：爆発の中心座標
         """
         img0 = pg.image.load("fig/explosion.gif")
+        mg0 = pg.transform.rotozoom(img0, 0, scale)
         img1 = pg.transform.flip(img0, True, False)
         self.imgs = [img0, img1]
         self.rct = self.imgs[0].get_rect()
@@ -246,7 +247,7 @@ def main():
                     time.sleep(0.2)
                     bombs[i] = None
                     beams[bi] = None
-                    explosions.append(Explosion(bomb.rct.center))  # 爆発インスタンス追加
+                    explosions.append(Explosion(bomb.rct.center, scale=0.5))  # scaleを指定 爆発インスタンス追加
                     score.score += 1
                     break
 
