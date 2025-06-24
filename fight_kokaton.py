@@ -3,6 +3,7 @@ import random
 import sys
 import time
 import pygame as pg
+import math
 
 
 WIDTH = 1100  # ゲームウィンドウの幅
@@ -53,7 +54,7 @@ class Bird:
         (+5, +5): pg.transform.rotozoom(img, -45, 0.9),  # 右下
     }
 
-    def __init__(self, xy: tuple[int, int]):
+    def __init__(self, xy: tuple[int, int]):#ex04
         """
         こうかとん画像Surfaceを生成する
         引数 xy：こうかとん画像の初期位置座標タプル
@@ -61,6 +62,7 @@ class Bird:
         self.img = __class__.imgs[(+5, 0)]
         self.rct: pg.Rect = self.img.get_rect()
         self.rct.center = xy
+        self.dire = (+5, 0)
 
     def change_img(self, num: int, screen: pg.Surface):
         """
@@ -86,11 +88,12 @@ class Bird:
         if check_bound(self.rct) != (True, True):
             self.rct.move_ip(-sum_mv[0], -sum_mv[1])
         if not (sum_mv[0] == 0 and sum_mv[1] == 0):
-            self.img = __class__.imgs[tuple(sum_mv)]
+            self.dire = tuple(sum_mv)  # ← 向きを更新
+            self.img = __class__.imgs[self.dire]
         screen.blit(self.img, self.rct)
 
 
-class Beam:#lec01
+class Beam:#lec01-->ex04
     """
     こうかとんが放つビームに関するクラス
     """
@@ -99,21 +102,29 @@ class Beam:#lec01
         ビーム画像Surfaceを生成する
         引数 bird：ビームを放つこうかとん（Birdインスタンス）
         """
-        self.img = pg.image.load(f"fig/beam.png")
+        self.vx, self.vy = bird.dire  # ← Birdの向きを参照
+        speed = 5
+        self.vx *= speed // 5
+        self.vy *= speed // 5
+
+        # ビーム画像の回転
+        theta = math.degrees(math.atan2(-self.vy, self.vx))  # -vyは座標系補正
+        raw_img = pg.image.load("fig/beam.png")
+        self.img = pg.transform.rotozoom(raw_img, theta, 1.0)
         self.rct = self.img.get_rect()
-        self.rct.centery = bird.rct.centery
-        self.rct.centerx = bird.rct.right
-        self.vx, self.vy = +5, 0
+
+        # ビームの発射位置調整
+        self.rct.centerx = bird.rct.centerx + bird.rct.width * self.vx // 5
+        self.rct.centery = bird.rct.centery + bird.rct.height * self.vy // 5
 
     def update(self, screen: pg.Surface):
         """
         ビームを速度ベクトルself.vx, self.vyに基づき移動させる
         引数 screen：画面Surface
         """
+        self.rct.move_ip(self.vx, self.vy)
         if check_bound(self.rct) == (True, True):
-            self.rct.move_ip(self.vx, self.vy)
             screen.blit(self.img, self.rct)
-
 
 class Bomb:
     """
