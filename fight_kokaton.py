@@ -33,6 +33,10 @@ class Bird:
         pg.K_DOWN: (0, +5),
         pg.K_LEFT: (-5, 0),
         pg.K_RIGHT: (+5, 0),
+        pg.K_w: (0, -5), #操作追加
+        pg.K_s: (0, +5),
+        pg.K_a: (-5, 0),
+        pg.K_d: (+5, 0)
     }
     img0 = pg.transform.rotozoom(pg.image.load("fig/3.png"), 0, 0.9)
     img = pg.transform.flip(img0, True, False)  # デフォルトのこうかとん（右向き）
@@ -84,29 +88,29 @@ class Bird:
         screen.blit(self.img, self.rct)
 
 
-# ビームクラス:
-    # """
-    # こうかとんが放つビームに関するクラス
-    # """
-    # def イニシャライザ(self, bird:"Bird"):
-    #     """
-    #     ビーム画像Surfaceを生成する
-    #     引数 bird：ビームを放つこうかとん（Birdインスタンス）
-    #     """
-    #     self.img = pg.画像のロード(f"fig/beam.png")
-    #     self.rct = self.img.Rectの取得()
-    #     self.ビームの中心縦座標 = こうかとんの中心縦座標
-    #     self.ビームの左座標 = こうかとんの右座標
-    #     self.vx, self.vy = +5, 0
+class Beam:
+    """
+    こうかとんが放つビームに関するクラス
+    """
+    def __init__(self, bird:"Bird"):
+        """
+        ビーム画像Surfaceを生成する
+        引数 bird：ビームを放つこうかとん（Birdインスタンス）
+        """
+        self.img = pg.image.load(f"fig/beam.png")
+        self.rct = self.img.get_rect()
+        self.rct.centery = bird.rct.centery
+        self.rct.centerx = bird.rct.right
+        self.vx, self.vy = +5, 0
 
-    # def update(self, screen: pg.Surface):
-    #     """
-    #     ビームを速度ベクトルself.vx, self.vyに基づき移動させる
-    #     引数 screen：画面Surface
-    #     """
-    #     if check_bound(self.rct) == (True, True):
-    #         self.rct.move_ip(self.vx, self.vy)
-    #         screen.blit(self.img, self.rct)    
+    def update(self, screen: pg.Surface):
+        """
+        ビームを速度ベクトルself.vx, self.vyに基づき移動させる
+        引数 screen：画面Surface
+        """
+        if check_bound(self.rct) == (True, True):
+            self.rct.move_ip(self.vx, self.vy)
+            screen.blit(self.img, self.rct)
 
 
 class Bomb:
@@ -153,9 +157,9 @@ def main():
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return
-            # if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
-            #     # スペースキー押下でBeamクラスのインスタンス生成
-            #     beam = Beam(bird)            
+            if event.type == pg.KEYDOWN and event.key == pg.K_SPACE:
+                # スペースキー押下でBeamクラスのインスタンス生成
+                beam = Beam(bird)
         screen.blit(bg_img, [0, 0])
         
         if bird.rct.colliderect(bomb.rct):
@@ -167,7 +171,8 @@ def main():
 
         key_lst = pg.key.get_pressed()
         bird.update(key_lst, screen)
-        # beam.update(screen)   
+        if beam is not None:
+            beam.update(screen)
         bomb.update(screen)
         pg.display.update()
         tmr += 1
